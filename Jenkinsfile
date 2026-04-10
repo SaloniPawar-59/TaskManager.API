@@ -7,7 +7,7 @@ pipeline {
         IMAGE_REPO_NAME = "task-manager-api"
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         REPOSITORY_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}"
-        APP_SERVER_IP = "43.205.196.14"
+        APP_SERVER_IP = "13.206.123.138"
     }
 
     stages {
