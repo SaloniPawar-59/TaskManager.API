@@ -22,7 +22,7 @@ pipeline {
                 script {
                     echo "Running xUnit Tests from Solution Root..."
                     // No need for ../ anymore because we are in the root!
-                    sh "/usr/bin/dotnet test ../TaskManager.sln --configuration Release"
+                    sh "/usr/bin/dotnet test ../TaskManager.slnx --configuration Release"
                 }
             }
         }
