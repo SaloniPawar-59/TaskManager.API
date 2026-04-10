@@ -7,7 +7,7 @@ pipeline {
         IMAGE_REPO_NAME = "task-manager-api"
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         REPOSITORY_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}"
-        APP_SERVER_IP = "13.206.123.138"
+        APP_SERVER_IP = "43.205.196.14"
     }
 
     stages {
@@ -20,9 +20,9 @@ pipeline {
         stage('Unit Tests') {
             steps {
                 script {
-                    echo "Climbing to root to run tests..."
-                    // We go up one level (..) to find the .sln file
-                    sh "dotnet test ../TaskManager.sln --configuration Release"
+                    echo "Running xUnit Tests from Solution Root..."
+                    // No need for ../ anymore because we are in the root!
+                    sh "dotnet test TaskManager.sln --configuration Release"
                 }
             }
         }
@@ -30,10 +30,11 @@ pipeline {
         stage('Docker Build') {
             steps {
                 script {
-                    // Since Jenkinsfile is ALREADY in TaskManager.API, 
-                    // we build right here in the current directory (.)
-                    sh "docker build --pull -t ${REPOSITORY_URL}:${IMAGE_TAG} ."
-                    sh "docker tag ${REPOSITORY_URL}:${IMAGE_TAG} ${REPOSITORY_URL}:latest"
+                    // We go into the API folder to find the Dockerfile and source code
+                    dir('TaskManager.API') {
+                        sh "docker build --pull -t ${REPOSITORY_URL}:${IMAGE_TAG} ."
+                        sh "docker tag ${REPOSITORY_URL}:${IMAGE_TAG} ${REPOSITORY_URL}:latest"
+                    }
                 }
             }
         }
@@ -54,8 +55,8 @@ pipeline {
             steps {
                 script {
                     sshagent(['app-server-ssh-key']) {
-                        // Current directory is TaskManager.API, so docker-compose is right here
-                        sh "scp -o StrictHostKeyChecking=no docker-compose.yml ubuntu@${APP_SERVER_IP}:/home/ubuntu/"
+                        // Copying the compose file from its specific subdirectory
+                        sh "scp -o StrictHostKeyChecking=no TaskManager.API/docker-compose.yml ubuntu@${APP_SERVER_IP}:/home/ubuntu/"
 
                         sh """
                         ssh -o StrictHostKeyChecking=no ubuntu@${APP_SERVER_IP} '
