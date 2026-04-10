@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15
+    container_name: task-db
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${DB_USER} -d $${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    image: 158582149043.dkr.ecr.ap-south-1.amazonaws.com/task-manager-api:latest
+    container_name: task-api
+    ports:
+      - "8080:8080"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=db;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+
+    logging:
+      driver: "awslogs"
+      options:
+        awslogs-region: "ap-south-1"
+        awslogs-group: "task-manager-logs"
+        awslogs-stream: "api-logs"
+        awslogs-create-group: "true"
+  
