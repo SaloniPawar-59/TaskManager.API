@@ -73,6 +73,9 @@ pipeline {
     
     post {
         always {
+            // This removes the workspace from the agent after the build
+            cleanWs() 
+            // This removes the local docker images created during the build
             sh "docker rmi ${REPOSITORY_URL}:${IMAGE_TAG} ${REPOSITORY_URL}:latest || true"
         }
         failure {
